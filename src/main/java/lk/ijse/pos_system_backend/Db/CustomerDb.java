@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class CustomerDb {
     public String generateCustomerId(Connection connection){
@@ -66,5 +67,27 @@ public class CustomerDb {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public ArrayList<CustomerDTO> getAllCustomer(Connection connection){
+        String sql = "select * from customer;";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            ArrayList<CustomerDTO> customerDTOS = new ArrayList<>();
+             while (resultSet.next()){
+                 CustomerDTO customerDTO = new CustomerDTO(
+                         resultSet.getString("customerId"),
+                         resultSet.getString("customerName"),
+                         resultSet.getString("city"),
+                         resultSet.getString("email")
+                 );
+                 customerDTOS.add(customerDTO);
+             }
+             return customerDTOS;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

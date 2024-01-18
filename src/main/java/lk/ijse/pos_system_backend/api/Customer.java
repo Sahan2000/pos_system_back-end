@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 @WebServlet(name = "customer", urlPatterns = "/customer")
 public class Customer extends HttpServlet {
@@ -37,6 +38,8 @@ public class Customer extends HttpServlet {
 
         if (action.equals("generateCustomerId")){
             generateCustomerId(req,resp);
+        } else if (action.equals("getAllCustomer")) {
+            getAllCustomer(req,resp);
         }
     }
 
@@ -92,7 +95,26 @@ public class Customer extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (req.getContentType() != null && req.getContentType().toLowerCase().startsWith("application/json")){
+            Jsonb jsonb = JsonbBuilder.create();
+            CustomerDTO customerDTO = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
+            var customerDb = new CustomerDb();
+        }
+    }
+
+    private void getAllCustomer(HttpServletRequest req, HttpServletResponse resp){
+        var customerDb = new CustomerDb();
+        ArrayList<CustomerDTO> allCustomer = customerDb.getAllCustomer(connection);
+
+        Jsonb jsonb = JsonbBuilder.create();
+        var json = jsonb.toJson(allCustomer);
+
+        resp.setContentType("application/json");
+        try {
+            resp.getWriter().write(json);
+        } catch (IOException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
     }
 }
