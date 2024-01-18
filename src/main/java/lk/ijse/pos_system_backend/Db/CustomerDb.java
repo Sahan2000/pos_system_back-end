@@ -53,6 +53,7 @@ public class CustomerDb {
 
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,custId);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()){
@@ -86,6 +87,34 @@ public class CustomerDb {
                  customerDTOS.add(customerDTO);
              }
              return customerDTOS;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean deleteCustomer(Connection connection, String custId){
+        String sql = "delete from customer where customerId=?;";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,custId);
+            return preparedStatement.executeUpdate() != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean updateCustomer(Connection connection, CustomerDTO customerDTO){
+        String sql = "update customer set customerName=?, city=?, email=? where customerId=?;";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,customerDTO.getCustomerName());
+            preparedStatement.setString(2,customerDTO.getCity());
+            preparedStatement.setString(3,customerDTO.getEmail());
+            preparedStatement.setString(4,customerDTO.getCustomerId());
+
+            return preparedStatement.executeUpdate() != 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

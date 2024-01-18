@@ -40,8 +40,13 @@ public class Customer extends HttpServlet {
             generateCustomerId(req,resp);
         } else if (action.equals("getAllCustomer")) {
             getAllCustomer(req,resp);
+        } else if (action.equals("getCustomer")) {
+            String custId = req.getParameter("customerId");
+            getCustomer(req,resp,custId);
         }
     }
+
+
 
     private void getCustomer(HttpServletRequest req, HttpServletResponse resp, String custId){
         var customerDb = new CustomerDb();
@@ -99,6 +104,30 @@ public class Customer extends HttpServlet {
             CustomerDTO customerDTO = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
             var customerDb = new CustomerDb();
+            boolean result = customerDb.updateCustomer(connection, customerDTO);
+
+            if (result){
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write("Customer information updated successfully!");
+            }else {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to saved customer information!");
+            }
+        }else {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String custId = req.getParameter("customerId");
+        var customerDb = new CustomerDb();
+        boolean result = customerDb.deleteCustomer(connection, custId);
+
+        if (result){
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().write("Customer information deleted successfully!");
+        }else {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to saved customer information!");
         }
     }
 
