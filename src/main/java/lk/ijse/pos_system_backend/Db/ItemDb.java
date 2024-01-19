@@ -1,5 +1,8 @@
 package lk.ijse.pos_system_backend.Db;
 
+import lk.ijse.pos_system_backend.dto.CustomerDTO;
+import lk.ijse.pos_system_backend.dto.ItemDTO;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,5 +31,21 @@ public class ItemDb {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public boolean saveItem(Connection connection, ItemDTO itemDTO){
+        String sql = "insert into item(itemCode, description, qty, price) values(?,?,?,?);";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,itemDTO.getItemCode());
+            preparedStatement.setString(2,itemDTO.getDescription());
+            preparedStatement.setString(3,itemDTO.getQty());
+            preparedStatement.setString(4,itemDTO.getPrice());
+
+            return preparedStatement.executeUpdate() != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
