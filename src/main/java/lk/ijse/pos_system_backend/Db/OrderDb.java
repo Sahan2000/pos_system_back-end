@@ -1,5 +1,10 @@
 package lk.ijse.pos_system_backend.Db;
 
+import lk.ijse.pos_system_backend.api.Order;
+import lk.ijse.pos_system_backend.dto.CombineDTo;
+import lk.ijse.pos_system_backend.dto.OrderDTO;
+import lk.ijse.pos_system_backend.dto.OrderDetailsDTO;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,8 +25,9 @@ public class OrderDb {
                 if (getLastId == null){
                     return "order-0001";
                 }else {
-                    int nextId = Integer.parseInt(getLastId.substring(5))+1;
-                    return "order-" + String.format("%05d",nextId);
+                    int nextId = Integer.parseInt(getLastId.substring(6))+1;
+                    System.out.println("order-" + String.format("%04d",nextId));
+                    return "order-" + String.format("%04d",nextId);
                 }
             }
 
@@ -29,5 +35,47 @@ public class OrderDb {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public boolean purchaseOrder(Connection connection, CombineDTo combineDTo){
+        try {
+            connection.setAutoCommit(false);
+
+            OrderDTO orderDTO = new OrderDTO(combineDTo.getOrderId(), combineDTo.getOrderDate(), combineDTo.getCustomerId());
+            OrderDetailsDTO orderDetailsDTO = new OrderDetailsDTO(combineDTo.getOrderId(), combineDTo.getItemCode(), combineDTo.getOrderQty(), combineDTo.getPrice());
+            if (saveOrder(connection,orderDTO)){
+                boolean isSaveOrderDetails = new OrderDetailsDb().saveOrderDetails(connection, orderDetailsDTO);
+
+                if (isSaveOrderDetails){
+                    boolean isUpdateItemQty = new ItemDb().updateItemQty(connection,orderDetailsDTO.getItemCode(),orderDetailsDTO.getGetQty());
+                    if (!isUpdateItemQty){
+                        return false;
+                    }
+                }else {
+                    return false;
+                }
+
+                connection.commit();
+                return true;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    public boolean saveOrder(Connection connection, OrderDTO orderDTO){
+        String sql = "insert into orders(orderId, orderDate, customerId) values(?,?,?);";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,orderDTO.getOrderId());
+            preparedStatement.setString(2,orderDTO.getOrderDate());
+            preparedStatement.setString(3,orderDTO.getCustomerId());
+
+            return preparedStatement.executeUpdate() != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

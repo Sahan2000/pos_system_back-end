@@ -122,4 +122,17 @@ public class ItemDb {
         }
         return null;
     }
+
+    public boolean updateItemQty(Connection connection, String itemCode, int getQty){
+        String sql = "UPDATE item SET qty = qty - ? WHERE itemCode = ?;";
+        try {
+            PreparedStatement  preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, getQty);
+            preparedStatement.setString(2, itemCode);
+
+            return preparedStatement.executeUpdate() != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
